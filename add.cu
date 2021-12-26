@@ -7,8 +7,8 @@ using namespace std;
 
 void setColours(vector<set<int>>& adj, int maxDegree, int n, int m, vector<int> &colours, vector<bool> & conflicts){
     int maxColours = maxDegree + 1;
-
     int i, j;
+    
     for(i = 0; i < n; i++){
         if(!conflicts[i])
             continue;
@@ -39,9 +39,7 @@ bool checkConflicts(vector<set<int>>& adj, int maxDegree, int n, int m, vector<i
     return isConflict;
 }
 
-
-
-void readGraph(int &n, int &m, int &maxDegree, int** h_degree, int** h_adj, int** h_adj_p){     //Take input
+void readGraph(int &n, int &m, int &maxDegree, int** h_degree, int** h_adj, int** h_adj_p){     
     int i, k, c;
     cout << "Enter the number of vertices : " << endl;
     cin >> n;
@@ -98,7 +96,6 @@ void readGraph(int &n, int &m, int &maxDegree, int** h_degree, int** h_adj, int*
         }
     }
 
-
     *h_adj_p = new int[n + 1];
     *h_adj = new int[(2 * m) + 1];
     *h_degree = new int[n];
@@ -113,7 +110,7 @@ void readGraph(int &n, int &m, int &maxDegree, int** h_degree, int** h_adj, int*
 
     int mx = INT_MIN; 
     for(i = 0;i < n; i++){
-		(*h_degree)[i] = (int)adj[i].size();                                                         //Find max degree
+		(*h_degree)[i] = (int)adj[i].size();                                                         
         mx = max(mx, (int)adj[i].size());
 	}
     
@@ -214,7 +211,7 @@ int* colourGraph(int n, int m, int maxDegree, int* d_adj, int* d_adj_p, int* d_w
     }
 
     cudaMemcpy(h_colours, d_colours, sizeof(int) * n, cudaMemcpyDeviceToHost);
-
+    
     cudaFree(d_colours);                                                                    //Free memory
     cudaFree(d_rem);
 
@@ -289,7 +286,7 @@ int* colourGraph2(int n, int m, int maxDegree, int* d_adj, int* d_adj_p, int* d_
     }
 
     cudaMemcpy(h_colours, d_colours, sizeof(int) * n, cudaMemcpyDeviceToHost);
-
+    
     cudaFree(d_colours);                                                                    //Free memory
     cudaFree(d_rem);
     cudaFree(d_degree);
@@ -325,6 +322,8 @@ int main(){
     cudaMalloc((void**)&d_adj_p, sizeof(int) * (n + 1));
     cudaMalloc((void**)&d_weights, sizeof(int) * n);
 
+	//----------------------------------------Jones Plassmann Graph Coloring--------------------------
+
     randomWeightAssign(h_weights, n);
 
     cudaMemcpy(d_adj, h_adj, sizeof(int) * ((2 * m) + 1), cudaMemcpyHostToDevice);      //Copy data to GPU
@@ -333,17 +332,12 @@ int main(){
 
     cout << "The max degree is : " << maxDegree << endl;
 
-    // for(i = 0;i < n; i++)
-    //     cout << "Node " << i << " : " << h_weights[i] << endl;
     cudaEventRecord(start);
     
     int *colouring = colourGraph(n, m, maxDegree, d_adj, d_adj_p, d_weights);        
     
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
-
-    //for(i = 0;i < n; i++)
-        //cout << "Colour of node " << i << " is : " << colouring[i] << endl;
 
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
@@ -355,9 +349,7 @@ int main(){
     printf("The minimum colors needed => %d\n", min_colors);
     printf("Parallel Graph coloring using Jones Plassmann algorithm takes => %f ms\n",milliseconds);
     
-    
-    
-    
+    //----------------------------------------Largest Degree First Graph Coloring--------------------------
     
     cudaEventRecord(start);
     
@@ -374,11 +366,9 @@ int main(){
         min_colors = max(min_colors, colouring2[i]);
 
     printf("The minimum colors needed => %d\n", min_colors);
-    printf("Parallel Graph coloring using Largest degree first takes => %f ms\n",milliseconds);
-    
-
+    printf("Parallel Graph coloring using Largest degree first takes => %f ms\n",milliseconds); 
     cudaFree(d_adj_p);
     cudaFree(d_adj);    
-    cudaFree(d_weights);
+    cudaFree(d_weights);    
 }
 
